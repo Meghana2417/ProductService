@@ -14,9 +14,14 @@ pipeline {
             }
         }
 
-        stage('Install Python packages') {
+        stage('Install Dependencies') {
             steps {
-                sh "pip install -r requirements.txt"
+                sh '''
+                python3 -m venv myenv
+                . myenv/bin/activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                '''
             }
         }
 
