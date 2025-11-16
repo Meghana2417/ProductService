@@ -1,68 +1,32 @@
 pipeline {
     agent any
-
     environment {
-        DOCKERHUB_USER = "meghana1724"
-        IMAGE_NAME = "productservice"
+        DOCKER_USERNAME = credentials('dockerhub').username
+        DOCKER_PASSWORD = credentials('dockerhub').password
     }
 
     stages {
-
-        stage('Checkout Code') {
+        stage('Clone Repo') {
             steps {
                 git branch: 'main', url: 'https://github.com/Meghana2417/ProductService.git'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Docker Build') {
             steps {
-                sh '''
-                python3 -m venv myenv
-                . myenv/bin/activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
-                '''
+                sh "docker build -t meghana1724/productservice ."
             }
         }
 
-        stage('Run Migrations Test') {
+        stage('Docker Login') {
             steps {
-                sh "python manage.py test || true"
+                sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Push') {
             steps {
-                sh "docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:latest ."
-            }
-        }
-
-        stage('Login to DockerHub') {
-            steps {
-                withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u ${DOCKERHUB_USER} --password-stdin"
-                }
-            }
-        }
-
-        stage('Push Image') {
-            steps {
-                sh "docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:latest"
-            }
-        }
-
-        stage('Deploy on EC2') {
-            steps {
-                sshagent(['ec2-ssh']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@YOUR_EC2_IP "
-                        docker pull meghana1724/productservice:latest &&
-                        docker stop django || true &&
-                        docker rm django || true &&
-                        docker run -d --name django -p 8003:8003 meghana1724/productservice:latest
-                    "
-                    '''
-                }
+                sh "docker push meghana1724/productservice"
             }
         }
     }
