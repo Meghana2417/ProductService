@@ -24,9 +24,16 @@ pipeline {
             }
         }
 
-        stage('Docker Push') {
-            steps {
-                sh "docker push meghana1724/productservice"
+        stage('Deploy') {
+        steps {
+            sh '''
+            docker stop productservice || true
+            docker rm productservice || true
+
+            docker pull meghana1724/productservice:latest
+
+            docker run -d --name productservice -p 8003:8003 meghana1724/productservice:latest
+            '''
             }
         }
     }
