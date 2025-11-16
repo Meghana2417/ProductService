@@ -24,6 +24,12 @@ pipeline {
             }
         }
 
+        stage('Docker Push') {
+            steps {
+                sh "docker push meghana1724/productservice"
+            }
+        }
+
         stage('Deploy') {
         steps {
             sh '''
