@@ -1,0 +1,8 @@
+djangorestframework 
+djangorestframework-gis 
+psycopg2-binary
+python-jose
+gunicorn
+requests
+Pillow
+whitenoise
